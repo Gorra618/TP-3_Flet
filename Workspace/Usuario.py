@@ -9,10 +9,10 @@ def Herramienta_Usuario(page: ft.Page, volver_callback):
     usuario = ft.TextField(label="Usuario", width=300)
     contrasena = ft.TextField(label="Contraseña", password=True, width=300)
 
-    guardar_btn = ft.ElevatedButton("Guardar", icon=ft.Icons.SAVE)
-    limpiar_btn = ft.ElevatedButton("Limpiar", icon=ft.Icons.CLEAR)
+    guardar_btn = ft.ElevatedButton("Guardar", icon=ft.icons.SAVE)
+    limpiar_btn = ft.ElevatedButton("Limpiar", icon=ft.icons.CLEAR)
     volver_btn = ft.ElevatedButton(
-        "Volver", icon=ft.Icons.ARROW_BACK, on_click=lambda e: volver_callback(page)
+        "Volver", icon=ft.icons.ARROW_BACK, on_click=lambda e: volver_callback(page)
     )
 
     page.controls.clear()

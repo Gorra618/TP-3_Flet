@@ -1,8 +1,7 @@
 import flet as ft
 import mysql.connector
-
-# --Importar los archivos correspondiente al sistema con las clases
 from Usuario import Herramienta_Usuario
+from Cliente import Herramienta_Cliente
 
 
 def connect_to_db():
@@ -12,7 +11,7 @@ def connect_to_db():
             port="3306",
             user="root",
             password="NikoStasyszyn",
-            database="Taller_Mecanico",
+            database="taller_mecanico",
             ssl_disabled=True,
         )
         if connection.is_connected():
@@ -28,11 +27,9 @@ connection = connect_to_db()
 
 
 def menu_principal(page: ft.Page):
+    page.clean()
     page.window.maximized = True
     page.title = "Administración de Taller Mecánico"
-
-    # ----Iconos Personales---
-    #  Crear un Row personalizado para el PopupMenuItem y barra de herramientas
 
     cliente_icono = ft.Icon(ft.Icons.PERSON, size=28)
     cliente_item = ft.Row(
@@ -96,7 +93,6 @@ def menu_principal(page: ft.Page):
         controls=[presupuesto_icono, ft.Text("Presupuesto")]
     )
 
-    # ---Barra de Menú---
     archivo_menu = ft.PopupMenuButton(
         items=[
             ft.PopupMenuItem(text="Copiar", icon=ft.Icons.COPY, tooltip="Copiar"),
@@ -133,41 +129,26 @@ def menu_principal(page: ft.Page):
         tooltip="Administración de presupuesto y ficha técnica",
     )
 
-    # --Barra de Herramientas--
     boton_cliente_item = ft.Row(
         controls=[
             cliente_icono,
         ],
     )
-    boton_cliente = ft.IconButton(icon=ft.Icons.PERSON, tooltip="Cliente")
+    boton_cliente = ft.IconButton(
+        icon=ft.Icons.PERSON,
+        tooltip="Cliente",
+        on_click=lambda e: mostrar_cliente(e, page),
+    )
+
     boton_usuario = ft.IconButton(
         icon=ft.Icons.PERSON_OUTLINE,
         tooltip="Usuario",
         on_click=lambda e: usuario(e, page),
     )
 
-    boton_repuesto_item = ft.Row(
-        controls=[
-            repuesto_icono,
-        ],
-    )
     boton_producto = ft.IconButton(icon=ft.Icons.BUILD, tooltip="Repuesto")
-
-    boton_ficha_tecnica_item = ft.Row(
-        controls=[
-            ficha_tecnica_icono,
-        ]
-    )
-    boton_ficha_tecnica = ft.IconButton(
-        ft.Icons.DIRECTIONS_CAR, tooltip="Ficha Técnica"
-    )
-
-    boton_presupuesto_item = ft.Row(
-        controls=[
-            presupuesto_icono,
-        ]
-    )
-    boton_presupuesto = ft.IconButton(ft.Icons.ATTACH_MONEY, tooltip="Presupuesto")
+    boton_ficha_tecnica = ft.IconButton(icon=ft.Icons.DIRECTIONS_CAR, tooltip="Ficha Técnica")
+    boton_presupuesto = ft.IconButton(icon=ft.Icons.ATTACH_MONEY, tooltip="Presupuesto")
 
     page.add(
         ft.Row(
@@ -204,6 +185,10 @@ def empleado(e, page: ft.Page):
 
 def usuario(e, page: ft.Page):
     Herramienta_Usuario(page, menu_principal)
+
+
+def mostrar_cliente(e, page: ft.Page):
+    Herramienta_Cliente(page, menu_principal)
 
 
 def main(page: ft.Page):
