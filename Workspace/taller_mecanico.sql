@@ -272,27 +272,31 @@ INSERT INTO `persona` VALUES ('17890452','POSTAI','FABIAN','AYACUCHO 969','35155
 UNLOCK TABLES;
 
 --
--- Table structure for table `repuestos`
+-- Table structure for table `presupuesto`
 --
 
-DROP TABLE IF EXISTS `repuestos`;
+DROP TABLE IF EXISTS `presupuesto`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `repuestos` (
-  `cod_repuesto` varchar(50) NOT NULL,
-  `descripcion` varchar(50) DEFAULT NULL,
-  `pcio_unit` float DEFAULT NULL,
-  PRIMARY KEY (`cod_repuesto`)
+CREATE TABLE `presupuesto` (
+  `nro_presupuesto` INT NOT NULL,
+  `cod_cliente` VARCHAR(20) DEFAULT NULL,
+  `descripcion` VARCHAR(255) DEFAULT NULL,
+  `total_presupuesto` FLOAT DEFAULT NULL,
+  `total_gastado` FLOAT DEFAULT NULL,
+  PRIMARY KEY (`nro_presupuesto`),
+  KEY `FK_CodCliente_Presupuesto` (`cod_cliente`),
+  CONSTRAINT `FK_CodCliente_Presupuesto` FOREIGN KEY (`cod_cliente`) REFERENCES `cliente` (`cod_cliente`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `repuestos`
+-- Dumping data for table `presupuesto`
 --
 
-LOCK TABLES `repuestos` WRITE;
-/*!40000 ALTER TABLE `repuestos` DISABLE KEYS */;
-/*!40000 ALTER TABLE `repuestos` ENABLE KEYS */;
+LOCK TABLES `presupuesto` WRITE;
+/*!40000 ALTER TABLE `presupuesto` DISABLE KEYS */;
+/*!40000 ALTER TABLE `presupuesto` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

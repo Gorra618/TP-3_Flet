@@ -1,33 +1,28 @@
 import flet as ft
 
+class Herramienta_Usuario:
+    def __init__(self, page: ft.Page, main_menu_callback):
+        self.page = page
+        self.main_menu_callback = main_menu_callback
+        self.mostrar_login()
 
-def Herramienta_Usuario(page: ft.Page, volver_callback):
+    def mostrar_login(self):
+        self.page.clean()
+        self.usuario = ft.TextField(label="Usuario", width=300)
+        self.contrasena = ft.TextField(label="Contraseña", password=True, width=300)
+        iniciar_btn = ft.ElevatedButton("Iniciar sesión")
+        volver_btn = ft.ElevatedButton("Volver", icon=ft.Icons.ARROW_BACK, on_click=lambda e: self.main_menu_callback(self.page))
 
-    nombre = ft.TextField(label="Nombre", width=300)
-    apellido = ft.TextField(label="Apellido", width=300)
-    email = ft.TextField(label="Email", width=300)
-    usuario = ft.TextField(label="Usuario", width=300)
-    contrasena = ft.TextField(label="Contraseña", password=True, width=300)
-
-    guardar_btn = ft.ElevatedButton("Guardar", icon=ft.icons.SAVE)
-    limpiar_btn = ft.ElevatedButton("Limpiar", icon=ft.icons.CLEAR)
-    volver_btn = ft.ElevatedButton(
-        "Volver", icon=ft.icons.ARROW_BACK, on_click=lambda e: volver_callback(page)
-    )
-
-    page.controls.clear()
-    page.add(
-        ft.Column(
-            [
-                ft.Text("Gestión de Usuarios", size=24, weight="bold"),
-                nombre,
-                apellido,
-                email,
-                usuario,
-                contrasena,
-                ft.Row([guardar_btn, limpiar_btn, volver_btn], spacing=10),
-            ],
-            spacing=10,
+        self.page.add(
+            ft.Column(
+                [
+                    ft.Text("Inicio de Sesión", size=24, weight="bold"),
+                    self.usuario,
+                    self.contrasena,
+                    ft.Row([iniciar_btn, volver_btn], spacing=10),
+                ],
+                spacing=10,
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            )
         )
-    )
-    page.update()
