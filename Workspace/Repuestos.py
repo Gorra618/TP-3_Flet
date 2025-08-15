@@ -27,6 +27,17 @@ class Herramienta_Repuesto:
         self.main_menu_callback = main_menu_callback
         self.connection = connect_to_db()
         self.cursor = self.connection.cursor() if self.connection else None
+        self.search_field = ft.TextField(label="Buscar", width=300, on_change=self.search)
+        self.search_column = ft.Dropdown(
+            options=[
+                ft.dropdown.Option("cod_repuesto"),
+                ft.dropdown.Option("descripcion"),
+                ft.dropdown.Option("pcio_unit"),
+            ],
+            value="descripcion",
+            width=200,
+            on_change=self.search,
+        )
         self.mostrar_repuesto()
 
     def mostrar_repuesto(self):
@@ -42,11 +53,18 @@ class Herramienta_Repuesto:
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
+        search_row = ft.Row(
+            [
+                self.search_column,
+                self.search_field,
+            ],
+            alignment=ft.MainAxisAlignment.START,
+        )
         data_table = self.create_repuesto_table()
         self.page.add(
             ft.Container(
                 content=ft.Column(
-                    controls=[header, data_table],
+                    controls=[header, search_row, data_table],
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
@@ -124,9 +142,23 @@ class Herramienta_Repuesto:
         """
         self.cursor.execute(listado_todos_repuestos)
         datos_repuestos = self.cursor.fetchall()
-        rows = []
+        self.all_data = datos_repuestos
+        rows = self.get_rows(datos_repuestos)
 
-        for repuesto in datos_repuestos:
+        data_table = ft.DataTable(
+            columns=[
+                ft.DataColumn(ft.Text("Código de Repuesto")),
+                ft.DataColumn(ft.Text("Descripción")),
+                ft.DataColumn(ft.Text("Precio Unitario")),
+                ft.DataColumn(ft.Text("Acciones")),
+            ],
+            rows=rows,
+        )
+        return data_table
+
+    def get_rows(self, repuestos):
+        rows = []
+        for repuesto in repuestos:
             eliminar_button = ft.IconButton(
                 icon=ft.Icons.DELETE,
                 tooltip="Borrar",
@@ -151,17 +183,31 @@ class Herramienta_Repuesto:
                     ],
                 ),
             )
+        return rows
 
-        data_table = ft.DataTable(
-            columns=[
-                ft.DataColumn(ft.Text("Código de Repuesto")),
-                ft.DataColumn(ft.Text("Descripción")),
-                ft.DataColumn(ft.Text("Precio Unitario")),
-                ft.DataColumn(ft.Text("Acciones")),
-            ],
-            rows=rows,
-        )
-        return data_table
+    def search(self, e):
+        search_value = self.search_field.value.lower()
+        search_column = self.search_column.value
+
+        if not search_value:
+            filtered_data = self.all_data
+        else:
+            filtered_data = [
+                repuesto for repuesto in self.all_data
+                if search_value in str(repuesto[self.get_column_index(search_column)]).lower()
+            ]
+
+        rows = self.get_rows(filtered_data)
+        self.page.controls[2] = self.create_data_table(rows)
+        self.page.update()
+
+    def get_column_index(self, column_name):
+        mapping = {
+            "cod_repuesto": 0,
+            "descripcion": 1,
+            "pcio_unit": 2,
+        }
+        return mapping.get(column_name, 0)
 
     def eliminar_repuesto(self, e, repuesto):
         try:

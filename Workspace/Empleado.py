@@ -25,6 +25,20 @@ class Herramienta_Empleado:
         self.main_menu_callback = main_menu_callback
         self.connection = connect_to_db()
         self.cursor = self.connection.cursor() if self.connection else None
+        self.search_field = ft.TextField(label="Buscar", width=300, on_change=self.search)
+        self.search_column = ft.Dropdown(
+            options=[
+                ft.dropdown.Option("legajo"),
+                ft.dropdown.Option("apellido"),
+                ft.dropdown.Option("nombre"),
+                ft.dropdown.Option("dni"),
+                ft.dropdown.Option("direccion"),
+                ft.dropdown.Option("telefono"),
+            ],
+            value="apellido",
+            width=200,
+            on_change=self.search,
+        )
         self.mostrar_empleado()
 
     def mostrar_empleado(self):
@@ -40,11 +54,18 @@ class Herramienta_Empleado:
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
-        data_table = self.create_empleado_table()
+        search_row = ft.Row(
+            [
+                self.search_column,
+                self.search_field,
+            ],
+            alignment=ft.MainAxisAlignment.START,
+        )
+        self.data_table = self.create_empleado_table()
         self.page.add(
             ft.Container(
                 content=ft.Column(
-                    controls=[header, data_table],
+                    controls=[header, search_row, self.data_table],
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
@@ -134,9 +155,26 @@ class Herramienta_Empleado:
         """
         self.cursor.execute(listado_todos_empleados)
         datos_empleados = self.cursor.fetchall()
-        rows = []
+        self.all_data = datos_empleados
+        rows = self.get_rows(datos_empleados)
 
-        for empleado in datos_empleados:
+        data_table = ft.DataTable(
+            columns=[
+                ft.DataColumn(ft.Text("Apellido")),
+                ft.DataColumn(ft.Text("Nombre")),
+                ft.DataColumn(ft.Text("DNI")),
+                ft.DataColumn(ft.Text("Dirección")),
+                ft.DataColumn(ft.Text("Teléfono")),
+                ft.DataColumn(ft.Text("Legajo")),
+                ft.DataColumn(ft.Text("Acciones")),
+            ],
+            rows=rows,
+        )
+        return data_table
+
+    def get_rows(self, empleados):
+        rows = []
+        for empleado in empleados:
             eliminar_button = ft.IconButton(
                 icon=ft.Icons.DELETE,
                 tooltip="Borrar",
@@ -160,20 +198,29 @@ class Herramienta_Empleado:
                     ],
                 ),
             )
+        return rows
 
-        data_table = ft.DataTable(
-            columns=[
-                ft.DataColumn(ft.Text("Apellido")),
-                ft.DataColumn(ft.Text("Nombre")),
-                ft.DataColumn(ft.Text("DNI")),
-                ft.DataColumn(ft.Text("Dirección")),
-                ft.DataColumn(ft.Text("Teléfono")),
-                ft.DataColumn(ft.Text("Legajo")),
-                ft.DataColumn(ft.Text("Acciones")),
-            ],
-            rows=rows,
-        )
-        return data_table
+    def search(self, e):
+        search_term = self.search_field.value.lower()
+        search_column = self.search_column.value
+        filtered_data = []
+
+        for row in self.all_data:
+            if search_column == "legajo" and str(row[5]).lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "apellido" and row[0].lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "nombre" and row[1].lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "dni" and str(row[2]).lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "direccion" and row[3].lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "telefono" and row[4].lower().__contains__(search_term):
+                filtered_data.append(row)
+
+        self.data_table.rows = self.get_rows(filtered_data)
+        self.page.update()
 
     def eliminar_empleado(self, e, empleado):
         try:

@@ -25,6 +25,20 @@ class Herramienta_FichaTecnica:
         self.main_menu_callback = main_menu_callback
         self.connection = connect_to_db()
         self.cursor = self.connection.cursor() if self.connection else None
+        self.search_field = ft.TextField(label="Buscar", width=300, on_change=self.search)
+        self.search_column = ft.Dropdown(
+            options=[
+                ft.dropdown.Option("nro_ficha"),
+                ft.dropdown.Option("cod_cliente"),
+                ft.dropdown.Option("vehiculo"),
+                ft.dropdown.Option("subtotal"),
+                ft.dropdown.Option("mano_obra"),
+                ft.dropdown.Option("total_general"),
+            ],
+            value="nro_ficha",
+            width=200,
+            on_change=self.search,
+        )
         self.mostrar_ficha_tecnica()
 
     def mostrar_ficha_tecnica(self):
@@ -40,11 +54,18 @@ class Herramienta_FichaTecnica:
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
-        data_table = self.create_ficha_tecnica_table()
+        search_row = ft.Row(
+            [
+                self.search_column,
+                self.search_field,
+            ],
+            alignment=ft.MainAxisAlignment.START,
+        )
+        self.data_table = self.create_ficha_tecnica_table()
         self.page.add(
             ft.Container(
                 content=ft.Column(
-                    controls=[header, data_table],
+                    controls=[header, search_row, self.data_table],
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
@@ -131,9 +152,26 @@ class Herramienta_FichaTecnica:
         """
         self.cursor.execute(listado_todas_fichas)
         datos_fichas = self.cursor.fetchall()
-        rows = []
+        self.all_data = datos_fichas
+        rows = self.get_rows(datos_fichas)
 
-        for ficha in datos_fichas:
+        data_table = ft.DataTable(
+            columns=[
+                ft.DataColumn(ft.Text("Nro Ficha")),
+                ft.DataColumn(ft.Text("Código Cliente")),
+                ft.DataColumn(ft.Text("Vehículo")),
+                ft.DataColumn(ft.Text("Subtotal")),
+                ft.DataColumn(ft.Text("Mano de Obra")),
+                ft.DataColumn(ft.Text("Total General")),
+                ft.DataColumn(ft.Text("Acciones")),
+            ],
+            rows=rows,
+        )
+        return data_table
+
+    def get_rows(self, fichas):
+        rows = []
+        for ficha in fichas:
             eliminar_button = ft.IconButton(
                 icon=ft.Icons.DELETE,
                 tooltip="Borrar",
@@ -157,20 +195,29 @@ class Herramienta_FichaTecnica:
                     ],
                 ),
             )
+        return rows
 
-        data_table = ft.DataTable(
-            columns=[
-                ft.DataColumn(ft.Text("Nro Ficha")),
-                ft.DataColumn(ft.Text("Código Cliente")),
-                ft.DataColumn(ft.Text("Vehículo")),
-                ft.DataColumn(ft.Text("Subtotal")),
-                ft.DataColumn(ft.Text("Mano de Obra")),
-                ft.DataColumn(ft.Text("Total General")),
-                ft.DataColumn(ft.Text("Acciones")),
-            ],
-            rows=rows,
-        )
-        return data_table
+    def search(self, e):
+        search_term = self.search_field.value.lower()
+        search_column = self.search_column.value
+        filtered_data = []
+
+        for row in self.all_data:
+            if search_column == "nro_ficha" and str(row[0]).lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "cod_cliente" and str(row[1]).lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "vehiculo" and row[2].lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "subtotal" and str(row[3]).lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "mano_obra" and str(row[4]).lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "total_general" and str(row[5]).lower().__contains__(search_term):
+                filtered_data.append(row)
+
+        self.data_table.rows = self.get_rows(filtered_data)
+        self.page.update()
 
     def eliminar_ficha_tecnica(self, e, ficha):
         try:

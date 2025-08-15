@@ -25,6 +25,19 @@ class Herramienta_Proveedor:
         self.main_menu_callback = main_menu_callback
         self.connection = connect_to_db()
         self.cursor = self.connection.cursor() if self.connection else None
+        self.search_field = ft.TextField(label="Buscar", width=300, on_change=self.search)
+        self.search_column = ft.Dropdown(
+            options=[
+                ft.dropdown.Option("cod_proveedor"),
+                ft.dropdown.Option("nombre"),
+                ft.dropdown.Option("direccion"),
+                ft.dropdown.Option("telefono"),
+                ft.dropdown.Option("email"),
+            ],
+            value="nombre",
+            width=200,
+            on_change=self.search,
+        )
         self.mostrar_proveedor()
 
     def mostrar_proveedor(self):
@@ -40,11 +53,18 @@ class Herramienta_Proveedor:
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
-        data_table = self.create_proveedor_table()
+        search_row = ft.Row(
+            [
+                self.search_column,
+                self.search_field,
+            ],
+            alignment=ft.MainAxisAlignment.START,
+        )
+        self.data_table = self.create_proveedor_table()
         self.page.add(
             ft.Container(
                 content=ft.Column(
-                    controls=[header, data_table],
+                    controls=[header, search_row, self.data_table],
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
@@ -128,9 +148,25 @@ class Herramienta_Proveedor:
         """
         self.cursor.execute(listado_todos_proveedores)
         datos_proveedores = self.cursor.fetchall()
-        rows = []
+        self.all_data = datos_proveedores
+        rows = self.get_rows(datos_proveedores)
 
-        for proveedor in datos_proveedores:
+        data_table = ft.DataTable(
+            columns=[
+                ft.DataColumn(ft.Text("Código Proveedor")),
+                ft.DataColumn(ft.Text("Nombre")),
+                ft.DataColumn(ft.Text("Dirección")),
+                ft.DataColumn(ft.Text("Teléfono")),
+                ft.DataColumn(ft.Text("Email")),
+                ft.DataColumn(ft.Text("Acciones")),
+            ],
+            rows=rows,
+        )
+        return data_table
+
+    def get_rows(self, proveedores):
+        rows = []
+        for proveedor in proveedores:
             eliminar_button = ft.IconButton(
                 icon=ft.Icons.DELETE,
                 tooltip="Borrar",
@@ -153,19 +189,27 @@ class Herramienta_Proveedor:
                     ],
                 ),
             )
+        return rows
 
-        data_table = ft.DataTable(
-            columns=[
-                ft.DataColumn(ft.Text("Código Proveedor")),
-                ft.DataColumn(ft.Text("Nombre")),
-                ft.DataColumn(ft.Text("Dirección")),
-                ft.DataColumn(ft.Text("Teléfono")),
-                ft.DataColumn(ft.Text("Email")),
-                ft.DataColumn(ft.Text("Acciones")),
-            ],
-            rows=rows,
-        )
-        return data_table
+    def search(self, e):
+        search_term = self.search_field.value.lower()
+        search_column = self.search_column.value
+        filtered_data = []
+
+        for row in self.all_data:
+            if search_column == "cod_proveedor" and str(row[0]).lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "nombre" and row[1].lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "direccion" and row[2].lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "telefono" and row[3].lower().__contains__(search_term):
+                filtered_data.append(row)
+            elif search_column == "email" and row[4].lower().__contains__(search_term):
+                filtered_data.append(row)
+
+        self.data_table.rows = self.get_rows(filtered_data)
+        self.page.update()
 
     def eliminar_proveedor(self, e, proveedor):
         try:
